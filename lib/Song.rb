@@ -1,63 +1,61 @@
-class Song 
-  
+class Song
   extend Concerns::Findable
-  
-  attr_accessor :name, :artist, :genre
-  
+
+  attr_accessor :name
+  attr_reader :artist, :genre
   @@all = []
-  
-  def initialize(name, artist=nil, genre=nil)
-    @name = name 
-    #@@all << self
-    
-    self.artist=(artist) unless artist == nil
-    self.genre=(genre) unless genre == nil
-    save
+
+  def initialize(name, artist = nil, genre = nil)
+    @name = name
+    self.artist = artist if artist
+    self.genre = genre if genre
   end
-  
-  def self.all 
+
+  def self.all
     @@all
   end
-  
-  def self.destroy_all 
-    @@all.clear
-  end
-  
-  def save 
+
+  def save
     @@all << self
   end
 
-  def self.create(song, artist=nil, genre=nil)
-   new_song = Song.new(song, artist, genre)
+  def self.destroy_all
+    @@all.clear
   end
-  
+
+  def self.create(name)
+    song = Song.new(name)
+    song.save
+    song
+  end
+
   def artist=(artist)
     @artist = artist
     artist.add_song(self)
   end
-  
+
   def genre=(genre)
-    @genre = genre 
-    self.genre.songs << self unless genre.songs.include?(self)
-  end 
-  
-  def self.find_by_name(song_name)
-    self.all.detect {|song|song.name == song_name}
+    @genre = genre
+    genre.songs << self unless genre.songs.include?(self)
   end
-  
-  def self.find_or_create_by_name(song_name)
-    find_by_name(song_name) || create(song_name)
+
+  def self.new_from_filename(name)
+    file = name.split(" - ")
+    song_name = file[1]
+    artist_name = file[0]
+    genre_name = file[2].chomp('.mp3')
+
+    artist = Artist.find_or_create_by_name(artist_name)
+    genre = Genre.find_or_create_by_name(genre_name)
+    song = Song.find_or_create_by_name(song_name)
+    song.artist = artist
+    song.genre = genre
+    @song = song
   end
-  
- def self.new_from_filename(filename)
-    title = filename.split(" - ")
-    artist = Artist.find_or_create_by_name(title[0])
-    genre = Genre.find_or_create_by_name(title[2][0..-5])
-    create(title[1], artist, genre)
-  end 
-  
+
   def self.create_from_filename(file_name)
-    new_from_filename(file_name).tap { |song| song.save }
-  end    
-  
-end 
+    song = new_from_filename(file_name)
+    self.new(song)
+  end
+
+end
