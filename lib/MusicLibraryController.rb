@@ -1,4 +1,13 @@
- def call 
+class MusicLibraryController
+
+extend Concerns::Findable
+
+  def initialize(path = "./db/mp3s")
+   new_music_importer = MusicImporter.new(path)
+   new_music_importer.import
+  end
+
+  def call 
   input = ""
     while input != "exit"
       puts "Welcome to your music library!"
@@ -124,4 +133,4 @@ def list_songs
     end
   end
 
-end
+end 
